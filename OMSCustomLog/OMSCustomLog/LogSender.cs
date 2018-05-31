@@ -33,8 +33,10 @@ namespace OMSCustomLog
         public static string Send(string WorkSpaceId,  string WorkSpaceKey, string CustomLogName, string EventJson)
         {
             var eventDate = DateTime.UtcNow.ToString("r");
+            var jsonBytes = Encoding.UTF8.GetBytes(EventJson);
+            string stringToHash = "POST\n" + jsonBytes.Length + "\napplication/json\n" + "x-ms-date:" + eventDate + "\n/api/logs";
 
-            var signature = BuildSignature(EventJson, WorkSpaceKey);
+            var signature = BuildSignature(stringToHash, WorkSpaceKey);
 
             try
             {
@@ -43,7 +45,7 @@ namespace OMSCustomLog
                 System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
                 client.DefaultRequestHeaders.Add("Log-Type", CustomLogName);
-                client.DefaultRequestHeaders.Add("Authorization", signature);
+                client.DefaultRequestHeaders.Add("Authorization", "SharedKey " + WorkSpaceId + ":" + signature);
                 client.DefaultRequestHeaders.Add("x-ms-date", eventDate);
                 client.DefaultRequestHeaders.Add("time-generated-field", eventDate);
 
